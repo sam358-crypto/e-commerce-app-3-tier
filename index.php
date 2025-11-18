@@ -1,3 +1,24 @@
+<?php
+function loadEnv($path)
+{
+    if (!file_exists($path)) {
+        return false;
+    }
+
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) {
+            continue;
+        }
+
+        list($name, $value) = explode('=', $line, 2);
+        putenv("$name=$value");
+    }
+}
+
+loadEnv(__DIR__ . '/.env');
+?>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -5,7 +26,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Kodekloud E-Commerce</title>
+        <title>CodeKerdos E-Commerce</title>
 
         <!-- Favicon -->
         <link rel="icon" href="img/favicon.png" type="image/png" />
@@ -162,7 +183,7 @@
 
 
                 <div class="copy_right_area">
-                    <h4 class="copy_right">© Copyright 2019 Kodekloud Ecommerce | All Rights Reserved</h4>
+                    <h4 class="copy_right">© Copyright 2025 CodeKerdos Ecommerce | All Rights Reserved</h4>
                 </div>
             </div>
         </footer>

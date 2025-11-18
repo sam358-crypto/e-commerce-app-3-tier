@@ -1,93 +1,121 @@
-# E Commerce App - 3 tier
+📘 README — Deploying the CodeKloud E-Commerce App on Ubuntu (WSL)
+
+This document provides step-by-step instructions to deploy the CodeKloud E-Commerce Application on Ubuntu (WSL or regular Ubuntu Server).
+This version is adapted from the original CentOS guide.
+
+🟩 1. Update System
+sudo apt update -y
+sudo apt upgrade -y
+
+🟩 2. Install & Configure MariaDB (Database Layer)
+Install MariaDB
+sudo apt install -y mariadb-server
+
+Start & Enable MariaDB
+
+(If WSL supports systemd)
+
+sudo systemctl start mariadb
+sudo systemctl enable mariadb
+
+Login to MySQL
+sudo mysql
+
+Create database & user
+
+Inside MySQL shell:
+
+CREATE DATABASE ecomdb;
+CREATE USER 'ecomuser'@'localhost' IDENTIFIED BY 'ecompassword';
+GRANT ALL PRIVILEGES ON *.* TO 'ecomuser'@'localhost';
+FLUSH PRIVILEGES;
+
+🟩 3. Load Initial Product Data
+
+Create the SQL file:
+
+cat > db-load-script.sql << 'EOF'
+USE ecomdb;
+CREATE TABLE products (
+    id mediumint(8) unsigned NOT NULL auto_increment,
+    Name varchar(255) default NULL,
+    Price varchar(255) default NULL,
+    ImageUrl varchar(255) default NULL,
+    PRIMARY KEY (id)
+) AUTO_INCREMENT=1;
+
+INSERT INTO products (Name,Price,ImageUrl) VALUES
+("Laptop","100","c-1.png"),
+("Drone","200","c-2.png"),
+("VR","300","c-3.png"),
+("Tablet","50","c-5.png"),
+("Watch","90","c-6.png"),
+("Phone Covers","20","c-7.png"),
+("Phone","80","c-8.png"),
+("Laptop","150","c-4.png");
+EOF
 
 
+Load data:
 
-## Getting started
+sudo mysql < db-load-script.sql
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+🟩 4. Install Apache & PHP (Web Layer)
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Install required packages:
 
-## Add your files
+sudo apt install -y apache2 php php-mysql git
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
 
-```
-cd existing_repo
-git remote add origin https://gitlab.com/debjyotimt/e-commerce-app-3-tier.git
-git branch -M main
-git push -uf origin main
-```
+Make sure Apache loads index.php first:
 
-## Integrate with your tools
+sudo sed -i 's/index.html/index.php/g' /etc/apache2/mods-enabled/dir.conf
 
-- [ ] [Set up project integrations](https://gitlab.com/debjyotimt/e-commerce-app-3-tier/-/settings/integrations)
 
-## Collaborate with your team
+Restart Apache:
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+sudo systemctl restart apache2
 
-## Test and Deploy
+🟩 5. Deploy Application Code
 
-Use the built-in continuous integration in GitLab.
+Clone the repository into Apache’s web directory:
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+sudo rm -rf /var/www/html/*
+sudo git clone https://gitlab.com/debjyotimt/e-commerce-app-3-tier.git /var/www/html
 
-***
+🟩 6. Create Environment File
 
-# Editing this README
+Create a .env in /var/www/html:
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+sudo bash -c 'cat > /var/www/html/.env << "EOF"
+DB_HOST=localhost
+DB_USER=ecomuser
+DB_PASSWORD=ecompassword
+DB_NAME=ecomdb
+EOF'
 
-## Suggestions for a good README
+🟩 7. Application Code Notes
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+The provided index.php already contains code to read values from the environment variables:
 
-## Name
-Choose a self-explaining name for your project.
+$dbHost = getenv('DB_HOST');
+$dbUser = getenv('DB_USER');
+$dbPassword = getenv('DB_PASSWORD');
+$dbName = getenv('DB_NAME');
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+No additional changes are required.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+🟩 8. Test the Application
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+From WSL terminal:
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+curl http://localhost
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+From Windows browser:
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+http://localhost
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+You should now see the product list loading from MariaDB.
