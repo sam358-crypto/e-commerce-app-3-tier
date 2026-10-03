@@ -5,6 +5,8 @@ pipeline {
 
     environment {
 
+        KUBECONFIG = 'C:\\Users\\HP\\.kube\\config'
+
         DOCKER_USER = 'sam3583558'
 
         DOCKER_CREDENTIAL = 'dockerhub-creds'
@@ -135,16 +137,15 @@ pipeline {
             steps {
                 bat """
                     kubectl set image deployment/ecom-web ^
-                    ecom-web=${WEB_IMAGE}:v1.${BUILD_NUMBER} ^
+                    ecom-web=${WEB_IMAGE}:${BUILD_NUMBER} ^
                     -n ${K8S_NAMESPACE} ^
                     --kubeconfig="C:\\Users\\HP\\.kube\\config"
                 """
             }
         }
 
-        stage('Wait for Deployment') {
+         stage('Wait for Deployment') {
             steps {
-
                 bat """
                     kubectl rollout status ^
                     deployment/ecom-web ^
