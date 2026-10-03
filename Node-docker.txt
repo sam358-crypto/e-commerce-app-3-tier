@@ -1,0 +1,9 @@
+sudo docker build -f Dockerfile.web -t ecom-web:latest .
+ls -lrth
+docker images
+ls -lrth
+sudo docker build -f Dockerfile.db -t ecom-db:latest .
+docker images
+docker network create ecom-nw
+docker run -d --name ecom-database --network ecom-nw -p 3306:3306 ecom-db:latest
+docker run -d --name ecom-web   --network ecom-nw   -p 6060:80   -e DB_HOST=ecom-database   -e DB_USER=ecomuser   -e DB_PASSWORD=ecompassword   -e DB_NAME=ecomdb   ecom-web:latest

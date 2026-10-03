@@ -1,0 +1,99 @@
+
+sudo docker build -f Dockerfile.web -t ecom-web:latest .
+ls -lrth
+docker images
+ls -lrth
+sudo docker build -f Dockerfile.db -t ecom-db:latest .
+docker images
+docker network create ecom-nw
+docker run -d --name ecom-database --network ecom-nw -p 3306:3306 ecom-db:latest
+docker run -d --name ecom-web   --network ecom-nw   -p 6060:80   -e DB_HOST=ecom-database   -e DB_USER=ecomuser   -e DB_PASSWORD=ecompassword   -e DB_NAME=ecomdb   ecom-web:latest
+
+
+======================k8s=============
+
+docker tag ecom-db:latest sam3583558/ecom-db:v1.0
+docker tag ecom-web:latest sam3583558/ecom-web:v1.0
+
+docker push sam3583558/ecom-db:v1.0
+docker push sam3583558/ecom-web:v1.0
+
+                  Kubernetes Cluster
+┌──────────────────────────────────────────────────────┐
+│                                                      │
+│  Secret: ecom-db-secret                              │
+│  ├── DB_USER                                         │
+│  └── DB_PASSWORD                                     │
+│                                                      │
+│  ┌──────────────────────┐                            │
+│  │ MySQL StatefulSet    │                            │
+│  │ ecom-db-0            │                            │
+│  │                      │                            │
+│  │ PVC                  │                            │
+│  │ /var/lib/mysql       │                            │
+│  └──────────┬───────────┘                            │
+│             │                                        │
+│             │ 3306                                   │
+│             v                                        │
+│       ecom-db Service                                │
+│                                                      │
+│  ┌──────────────────────┐                            │
+│  │ Web Deployment       │                            │
+│  │ ecom-web             │                            │
+│  │ ├── Pod              │                            │
+│  │ ├── Pod              │                            │
+│  │ └── Pod              │                            │
+│  └──────────┬───────────┘                            │
+│             │                                        │
+│             v                                        │
+│       ecom-web Service                               │
+│                                                      │
+└──────────────────────────────────────────────────────┘
+
+
+=============
+step1:
+kubectl create namespace ecom
+kubectl create namespace ecom
+
+step2 : Secret
+
+kubectl -n ecom create secret generic ecom-db-secret \
+  --from-literal=DB_USER=ecomuser \
+  --from-literal=DB_PASSWORD=ecompassword \
+  --from-literal=DB_NAME=ecomdb
+
+  (if windows cmd:
+  kubectl -n ecom create secret generic ecom-db-secret --from-literal=DB_USER=ecomuser --from-literal=DB_PASSWORD=ecompassword --from-literal=DB_NAME=ecomdb)
+
+verify:
+kubectl get secret ecom-db-secret -n ecom -o yaml
+kubectl describe secret ecom-db-secret -n ecom
+
+step3:
+ecom-db-statefulset.yaml
+kubectl apply -f ecom-db-statefulset.yaml
+kubectl get pods -n ecom
+kubectl get statefulset -n eco
+kubectl get svc -n ecom
+kubectl get pvc -n ecom
+
+(Docker Desktop par jab aap PVC (PersistentVolumeClaim) create karte hain, toh Persistent Volume actual me aapke local laptop / PC ki disk (C: drive) par hi banta hai.)
+kubectl get storageclass
+
+step4:
+
+kubectl apply -f ecom-web-deployment.yaml
+kubectl apply -f ecom-web-service.yaml
+
+kubectl get pods -n ecom
+kubectl get deployment -n ecom
+kubectl get svc -n ecom
+NAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+ecom-db        ClusterIP   None            <none>        3306/TCP       62m
+ecom-web-svc   NodePort    10.100.73.110   <none>        80:30080/TCP   3m32s
+
+
+step5:
+
+

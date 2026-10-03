@@ -1,0 +1,10 @@
+FROM mariadb:11
+
+ENV MYSQL_ROOT_PASSWORD=rootpassword
+ENV MYSQL_DATABASE=ecomdb
+ENV MYSQL_USER=ecomuser
+ENV MYSQL_PASSWORD=ecompassword
+
+COPY init-db.sql /docker-entrypoint-initdb.d/
+
+EXPOSE 3306
