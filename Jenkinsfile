@@ -132,14 +132,15 @@ pipeline {
         */
 
         stage('Deploy Web Application') {
-    steps {
-        bat """
-            kubectl set image deployment/ecom-web ^
-            ecom-web=${WEB_IMAGE}:${BUILD_NUMBER} ^
-            -n ${K8S_NAMESPACE}
-        """
-    }
-}
+            steps {
+                bat """
+                    kubectl set image deployment/ecom-web ^
+                    ecom-web=${WEB_IMAGE}:v1.${BUILD_NUMBER} ^
+                    -n ${K8S_NAMESPACE} ^
+                    --kubeconfig="C:\\Users\\HP\\.kube\\config"
+                """
+            }
+        }
 
         stage('Wait for Deployment') {
             steps {
