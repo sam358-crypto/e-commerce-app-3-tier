@@ -107,6 +107,7 @@ pipeline {
             }
         }
 
+        /*
         stage('Deploy DB') {
             steps {
 
@@ -127,7 +128,18 @@ pipeline {
                     -n ${K8S_NAMESPACE}
                 """
             }
-        }
+        } 
+        */
+
+        stage('Deploy Web Application') {
+    steps {
+        bat """
+            kubectl set image deployment/ecom-web ^
+            ecom-web=${WEB_IMAGE}:${BUILD_NUMBER} ^
+            -n ${K8S_NAMESPACE}
+        """
+    }
+}
 
         stage('Wait for Deployment') {
             steps {
