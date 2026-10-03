@@ -25,7 +25,7 @@ pipeline {
             steps {
 
                 git branch: 'main',
-                    url: 'https://github.com/sam358-crypto/ecom-app3tier.git'
+                    url: 'https://github.com/sam358-crypto/e-commerce-app-3-tier.git'
 
             }
         }
