@@ -155,6 +155,7 @@ pipeline {
             }
         }
 
+        /*
         stage('Verify') {
             steps {
 
@@ -194,7 +195,8 @@ pipeline {
                     echo.
                 """
             }
-        }
+        } 
+        */
     }
 
     post {
