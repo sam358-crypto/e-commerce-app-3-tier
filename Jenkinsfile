@@ -112,7 +112,7 @@ pipeline {
 
                 bat """
                     kubectl apply ^
-                    -f "%WORKSPACE%\\k8s_yaml\\ecom-db-statefulset-version.yaml" ^
+                    -f "%WORKSPACE%\\k8s_yaml\\ecom-db-statefulset.yaml" ^
                     -n ${K8S_NAMESPACE}
                 """
             }
@@ -123,11 +123,7 @@ pipeline {
 
                 bat """
                     kubectl apply ^
-                    -f "%WORKSPACE%\\k8s_yaml\\ecom-web-deployment-version.yaml" ^
-                    -n ${K8S_NAMESPACE}
-
-                    kubectl apply ^
-                    -f "%WORKSPACE%\\k8s_yaml\\ecom-web-service.yaml" ^
+                    -f "%WORKSPACE%\\k8s_yaml\\ecom-web-deployment.yaml" ^
                     -n ${K8S_NAMESPACE}
                 """
             }
